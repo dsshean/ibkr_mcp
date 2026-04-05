@@ -8,7 +8,7 @@ Inspired by [tradingview-mcp](https://github.com/tradesdontlie/tradingview-mcp) 
 Claude Code ←→ MCP Server (stdio) ←→ ib_async ←→ TWS / IB Gateway
 ```
 
-## Features — 41 Tools
+## Features — 52 Tools
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -16,12 +16,13 @@ Claude Code ←→ MCP Server (stdio) ←→ ib_async ←→ TWS / IB Gateway
 | **Account** | 4 | Summary, balances, P&L, managed accounts |
 | **Market Data** | 6 | Quotes, OHLCV bars, streaming, real-time bars, head timestamp |
 | **Contracts** | 5 | Search, details, qualify, option chains, symbol lookup |
-| **Orders** | 9 | Place/modify/cancel, bracket orders, what-if preview, executions |
+| **Orders** | 13 | Place/modify/cancel, bracket, combo/spread, OCA, conditional, algo |
 | **Portfolio** | 3 | Positions, portfolio items, per-position P&L |
 | **Market Depth** | 2 | Level 2 order book, available exchanges |
 | **Scanner & Research** | 5 | Market scanner, fundamental data, news headlines & articles |
 | **Advanced Data** | 3 | Histograms, tick-by-tick, historical ticks |
-| **Options** | 3 | Greeks, implied vol calculation, option price calculation |
+| **Options** | 4 | Greeks, implied vol, option pricing, exercise/lapse |
+| **Market Control** | 3 | Data type switching, trading schedule, tick rules |
 | **Watchlist** | 1 | Batch quotes for multiple symbols |
 
 ## Quick Start
@@ -138,6 +139,10 @@ Or if running from source:
 | `executions` | Today's fills with commissions |
 | `what_if_order` | Preview margin impact & commission |
 | `bracket_order` | Entry + take-profit + stop-loss (OCA linked) |
+| `combo_order` | Multi-leg combo/spread orders (verticals, iron condors, etc.) |
+| `oca_order` | One-Cancels-All linked order groups |
+| `conditional_order` | Orders with price/time/volume/margin conditions |
+| `algo_order` | Algorithmic orders (Adaptive, VWAP, TWAP, PctVol, etc.) |
 
 ### Portfolio
 
@@ -179,12 +184,27 @@ Or if running from source:
 | `option_greeks` | Delta, gamma, theta, vega, implied vol |
 | `calculate_implied_vol` | IV from option price (server-side) |
 | `calculate_option_price` | Theoretical price from volatility |
+| `option_exercise` | Exercise or lapse option positions |
+
+### Market Control
+
+| Tool | Description |
+|------|-------------|
+| `set_market_data_type` | Switch Live/Frozen/Delayed/Delayed-Frozen data |
+| `historical_schedule` | Trading hours and sessions for a contract |
+| `market_rule` | Tick size rules (price increments) |
 
 ### Watchlist
 
 | Tool | Description |
 |------|-------------|
 | `watchlist_quotes` | Batch quotes for a list of symbols |
+
+### System
+
+| Tool | Description |
+|------|-------------|
+| `news_bulletins` | Exchange-wide system messages and halts |
 
 ## Context Optimization
 
@@ -230,7 +250,7 @@ Like the TradingView MCP, tools are designed to minimize context usage:
 |---------|----------------|----------|
 | Connection | CDP → Electron app | IB API → TWS/Gateway |
 | Language | Node.js | Python |
-| Tools | 78 (chart-focused) | 41 (trading-focused) |
+| Tools | 78 (chart-focused) | 52 (trading-focused) |
 | Chart analysis | ✓ Full chart control | ✗ No charting |
 | Pine Script | ✓ Full development | ✗ N/A |
 | Order placement | ✗ Replay mode only | ✓ Full order management |
@@ -239,6 +259,9 @@ Like the TradingView MCP, tools are designed to minimize context usage:
 | Level 2 data | ✗ | ✓ Market depth |
 | Fundamental data | ✗ | ✓ |
 | Scanners | ✗ | ✓ Market scanners |
+| Algo orders | ✗ | ✓ Adaptive, VWAP, TWAP, PctVol |
+| Combo/spreads | ✗ | ✓ Multi-leg orders |
+| Conditional orders | ✗ | ✓ Price, time, volume triggers |
 
 ## License
 

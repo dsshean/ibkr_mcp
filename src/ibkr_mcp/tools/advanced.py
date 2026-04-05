@@ -412,3 +412,157 @@ def register(mcp: FastMCP) -> None:
                 "theta": result.theta,
             }
         return {"error": "Could not calculate option price"}
+
+    # -----------------------------------------------------------------------
+    # Option Exercise
+    # -----------------------------------------------------------------------
+
+    @mcp.tool()
+    async def option_exercise(
+        symbol: str,
+        expiry: str,
+        strike: float,
+        right: str,
+        exercise_quantity: int,
+        action: int = 1,
+        account: str = "",
+        override: int = 0,
+        exchange: str = "SMART",
+        currency: str = "USD",
+    ) -> dict[str, Any]:
+        """Exercise or lapse an option position.
+
+        Args:
+            action: 1 = exercise, 2 = lapse
+            exercise_quantity: Number of contracts to exercise/lapse
+            override: Set to 1 to override system's precautionary checks
+            account: Account ID (leave blank for default)
+        """
+        ib = await core.get_ib()
+        contract = core.build_contract(
+            symbol, "OPT", exchange, currency, expiry=expiry, strike=strike, right=right
+        )
+        contract = await core.qualify_contract(contract)
+        acct = account or ib.managedAccounts()[0]
+        ib.exerciseOptions(contract, action, exercise_quantity, acct, override)
+        await ib.sleep(1)
+        return {
+            "symbol": symbol,
+            "expiry": expiry,
+            "strike": strike,
+            "right": right,
+            "action": "exercise" if action == 1 else "lapse",
+            "quantity": exercise_quantity,
+            "status": "submitted",
+        }
+
+    # -----------------------------------------------------------------------
+    # Market Data Type Control
+    # -----------------------------------------------------------------------
+
+    @mcp.tool()
+    async def set_market_data_type(
+        data_type: int = 1,
+    ) -> dict[str, Any]:
+        """Switch market data type for all subsequent requests.
+
+        Args:
+            data_type: 1=Live, 2=Frozen, 3=Delayed, 4=Delayed-Frozen
+
+        Use Delayed (3) if you don't have live market data subscriptions.
+        """
+        ib = await core.get_ib()
+        ib.reqMarketDataType(data_type)
+        type_names = {1: "Live", 2: "Frozen", 3: "Delayed", 4: "Delayed-Frozen"}
+        return {
+            "marketDataType": data_type,
+            "name": type_names.get(data_type, "Unknown"),
+        }
+
+    # -----------------------------------------------------------------------
+    # Historical Schedule (Trading Hours)
+    # -----------------------------------------------------------------------
+
+    @mcp.tool()
+    async def historical_schedule(
+        symbol: str,
+        num_days: int = 5,
+        sec_type: str = "STK",
+        exchange: str = "SMART",
+        currency: str = "USD",
+    ) -> dict[str, Any]:
+        """Get trading hours/sessions schedule for a contract.
+
+        Returns the trading sessions for the last N days including
+        start/end times and timezone.
+        """
+        ib = await core.get_ib()
+        contract = core.build_contract(symbol, sec_type, exchange, currency)
+        contract = await core.qualify_contract(contract)
+        schedule = await ib.reqHistoricalScheduleAsync(
+            contract, numDays=num_days, endDateTime="", useRTH=True
+        )
+        if not schedule:
+            return {"symbol": symbol, "sessions": []}
+
+        return {
+            "symbol": symbol,
+            "startDateTime": schedule.startDateTime,
+            "endDateTime": schedule.endDateTime,
+            "timeZone": schedule.timeZone,
+            "sessions": [
+                {
+                    "startDateTime": s.startDateTime,
+                    "endDateTime": s.endDateTime,
+                    "refDate": s.refDate,
+                }
+                for s in (schedule.sessions or [])
+            ],
+        }
+
+    # -----------------------------------------------------------------------
+    # Market Rules (Tick Size)
+    # -----------------------------------------------------------------------
+
+    @mcp.tool()
+    async def market_rule(
+        market_rule_id: int,
+    ) -> list[dict[str, Any]]:
+        """Get tick size rules (price increments) for a market rule ID.
+
+        Market rule IDs can be found in contract_details results.
+        Returns a list of price increments: below a certain low edge, the min tick is X.
+        """
+        ib = await core.get_ib()
+        increments = await ib.reqMarketRuleAsync(market_rule_id)
+        return [
+            {"lowEdge": inc.lowEdge, "increment": inc.increment}
+            for inc in increments
+        ]
+
+    # -----------------------------------------------------------------------
+    # News Bulletins (Exchange-Wide)
+    # -----------------------------------------------------------------------
+
+    @mcp.tool()
+    async def news_bulletins(subscribe: bool = True) -> list[dict[str, Any]]:
+        """Subscribe to or get exchange-wide news bulletins.
+
+        These are system-wide messages from exchanges (halts, warnings, etc.).
+        """
+        ib = await core.get_ib()
+        if subscribe:
+            ib.reqNewsBulletins(allMessages=True)
+            await ib.sleep(2)
+        bulletins = ib.newsBulletins()
+        if not subscribe:
+            ib.cancelNewsBulletins()
+        return [
+            {
+                "msgId": b.msgId,
+                "msgType": b.msgType,
+                "message": b.message,
+                "origExchange": b.origExchange,
+            }
+            for b in bulletins
+        ]

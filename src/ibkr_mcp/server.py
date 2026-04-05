@@ -59,7 +59,7 @@ portfolio management via TWS or IB Gateway.
 - `option_chain` — Expirations and strikes for an underlying
 - `matching_symbols` — Quick symbol lookup
 
-### Orders (9 tools)
+### Orders (13 tools)
 - `order_place` — Place MKT/LMT/STP/STP_LMT/TRAIL orders
 - `order_modify` — Modify open order (qty, price)
 - `order_cancel` — Cancel single order
@@ -68,6 +68,10 @@ portfolio management via TWS or IB Gateway.
 - `completed_orders` — Filled/cancelled orders
 - `executions` — Today's fills
 - `what_if_order` — Preview margin impact and commission
+- `combo_order` — Multi-leg combo/spread orders (verticals, strangles, etc.)
+- `oca_order` — One-Cancels-All linked order groups
+- `conditional_order` — Orders with price/time/volume/margin conditions
+- `algo_order` — Algorithmic orders (Adaptive, VWAP, TWAP, PctVol, etc.)
 - `bracket_order` — Place bracket (entry + take-profit + stop-loss)
 
 ### Portfolio (3 tools)
@@ -91,9 +95,22 @@ portfolio management via TWS or IB Gateway.
 - `tick_by_tick_data` — Granular tick data (last, bid/ask, midpoint)
 - `historical_ticks` — Historical tick-level data
 
-### Watchlist (2 tools)
-- `watchlist_create` — Create a named watchlist with symbols
+### Options Analytics (4 tools)
+- `option_greeks` — Delta, gamma, theta, vega, implied vol
+- `calculate_implied_vol` — IV from option price (server-side)
+- `calculate_option_price` — Theoretical price from volatility
+- `option_exercise` — Exercise or lapse option positions
+
+### Market Control (3 tools)
+- `set_market_data_type` — Switch Live/Frozen/Delayed/Delayed-Frozen
+- `historical_schedule` — Trading hours and sessions
+- `market_rule` — Tick size rules by market rule ID
+
+### Watchlist (1 tool)
 - `watchlist_quotes` — Get quotes for all symbols in a list
+
+### System (1 tool)
+- `news_bulletins` — Exchange-wide system messages and halts
 
 ## Tips
 - Always call `ib_connect` before other tools
