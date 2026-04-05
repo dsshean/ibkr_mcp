@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ibkr-mcp"
+version = "1.0.0"
+description = "MCP server for Interactive Brokers TWS/Gateway — AI-assisted trading, market data, and portfolio management"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "ib_async>=1.0.0",
+]
+
+[project.scripts]
+ibkr-mcp = "ibkr_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ibkr_mcp"]
